@@ -143,11 +143,12 @@ int main(int, char **)
 
 
 	AddSphere({{0,0,50}}, {{255,0,0}}, 20);
-	AddSphere({{15,0,30}},{{0,0,255}}, 5);
+	AddSphere({{17,0,25}},{{0,0,255}}, 4);
 
-	AddSphere({{-15,0,30}},{{0,255,255}}, 5);
+	AddSphere({{-17,0,25}},{{0,255,255}}, 4);
+	AddSphere({{0,0,0}},{0,0,100}, 100);
 
-	int Width = 1024, Height = 1024, BytesPerPixel = 3;
+	int Width = 2048, Height = 1024, BytesPerPixel = 3;
 	unsigned char * ImageData = (unsigned char*)malloc((size_t)(Width*Height*BytesPerPixel));
 
 	V3 Origin = {{0,0,0}};
@@ -155,12 +156,13 @@ int main(int, char **)
 	{
 		for(int x=0;x<Width;x++)
 		{
-			V3 RayPosition = {{(x/(float)Width)*2.0f - 1.0f, -(y/(float)Height)*2.0f + 1.0f, 1}};
+			V3 RayPosition = {{(x/(float)Width)*4.0f - 2.0f, -(y/(float)Height)*2.0f + 1.0f, 1}};
 			V3 RayDirection = Normalise(RayPosition - Origin);
 			V3 RayColor = {{0,0,0}};
 			float intersection = 0;
 			int Index = -1;
 			int count = 0;
+			float ColorCoeff = 1.0f;
 			do
 			{
 				Index =-1;
@@ -205,18 +207,23 @@ int main(int, char **)
 					V3 IntersectionPoint = RayPosition + RayDirection * intersection;
 					V3 Normal = Normalise(IntersectionPoint - Spheres[Index].Position);
 					float C = dot(Normal, RayDirection);
-					RayColor = RayColor + 0.5*(1.0f-C)*Spheres[Index].Color;
+					RayColor = RayColor + ColorCoeff*(1.0f-C)*Spheres[Index].Color;
+					ColorCoeff *= 0.5;
 
 					RayDirection = Normalise(RayDirection - 2*C*Normal);
 					RayPosition = IntersectionPoint + 0.1 * RayDirection;
 					//	Index = -1;
 				}
+
+
 			}
 			while(Index != -1 && ++count <20) ;
 			ImageData[(x+y*Width)*BytesPerPixel +0 ] = RayColor.R;
+
 			ImageData[(x+y*Width)*BytesPerPixel +1 ] = RayColor.G;
 			ImageData[(x+y*Width)*BytesPerPixel +2 ] = RayColor.B;
 		}
+						printf("Line %d done\n",y);
 	}
 
 	 stbi_write_png("test.png", Width, Height, BytesPerPixel, ImageData,  Width * BytesPerPixel);
